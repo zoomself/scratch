@@ -14,18 +14,20 @@ ds = ct.read().batch(BATCH_SIZE).prefetch(AUTO_NUM)
 
 def create_generator():
     seq = tf.keras.models.Sequential([
-        tf.keras.layers.Dense(24 * 24 * 128),
+        tf.keras.layers.Dense(24 * 24 * 128, use_bias=False),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.LeakyReLU(),
+        tf.keras.layers.Reshape((24, 24, 128)),
+
+
+        tf.keras.layers.Conv2DTranspose(64, 3, strides=(2, 2),
+                                        padding='same', use_bias=False),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.LeakyReLU(),
 
-        tf.keras.layers.Reshape(target_shape=(24, 24, 128)),
-
-        tf.keras.layers.Conv2DTranspose(64, 3, 2, padding="same"),  # (48,48,64)
-        tf.keras.layers.BatchNormalization(),
-        tf.keras.layers.LeakyReLU(),
-
-        tf.keras.layers.Conv2DTranspose(3, 3, 2, padding="same", activation=tf.keras.activations.tanh),
-        # (96,96,3)
+        tf.keras.layers.Conv2DTranspose(3, 3, strides=(2, 2),
+                                        padding='same', use_bias=False,
+                                        activation='tanh')
 
     ])
 
@@ -38,14 +40,12 @@ def create_generator():
 
 def create_discriminator():
     seq = tf.keras.models.Sequential([
-        tf.keras.layers.Conv2D(64, 3, 2, padding="same", input_shape=IMG_SHAPE),
+        tf.keras.layers.Conv2D(64, 3, strides=(2, 2), padding='same'),
         tf.keras.layers.LeakyReLU(),
         tf.keras.layers.Dropout(0.3),
-
-        tf.keras.layers.Conv2D(128, 3, 2, padding="same"),
+        tf.keras.layers.Conv2D(128, 3, strides=(2, 2), padding='same'),
         tf.keras.layers.LeakyReLU(),
         tf.keras.layers.Dropout(0.3),
-
         tf.keras.layers.Flatten(),
         tf.keras.layers.Dense(1, tf.keras.activations.sigmoid),
     ])
@@ -65,8 +65,8 @@ class GAN(object):
 
         self.loss_obj = tf.keras.losses.binary_crossentropy
 
-        self.discriminator_opt_obj = tf.keras.optimizers.Adam()
-        self.generator_opt_obj = tf.keras.optimizers.Adam()
+        self.discriminator_opt_obj = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+        self.generator_opt_obj = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
 
         self.generator_metrics = tf.keras.metrics.BinaryAccuracy()
         self.generator_metrics_loss = tf.keras.metrics.Mean()
