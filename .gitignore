@@ -2,3 +2,5 @@
 /.idea
 /anime/check_point
 /anime/saved_imgs
+/mnist/check_point
+/mnist/logs

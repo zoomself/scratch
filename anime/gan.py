@@ -85,8 +85,8 @@ class GAN(object):
                 global_step=tf.Variable(1)
             )
             self.check_point_manager = tf.train.CheckpointManager(self.check_point, checkpoint_dir, max_to_keep=3)
-            self.check_point.restore(self.check_point_manager.latest_checkpoint)
             if self.check_point_manager.latest_checkpoint:
+                self.check_point.restore(self.check_point_manager.latest_checkpoint)
                 print("Restored from {}".format(self.check_point_manager.latest_checkpoint))
             else:
                 print("Initializing from scratch.")
